@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,8 +30,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.json.JSONException;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import tk.macx.miproyecto001.entidades.myDbAdapter;
+import tk.macx.miproyecto001.servicios.Message;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -62,6 +68,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
 
+    myDbAdapter dbHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,6 +100,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+        dbHelper = new myDbAdapter(this);
     }
 
     private void populateAutoComplete() {
@@ -331,6 +340,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
             showProgress(false);
+
+            long id = dbHelper.insertData(mEmail, mPassword);
+            Log.d("INSERT", ""+id);
+            if (id<=0) {
+                Message.toast(getApplicationContext(), "Error al insertar");
+            } else {
+                Message.toast(getApplicationContext(), "Insertado correctamente");
+                try {
+                    Log.d("DB->", dbHelper.getData().toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
 
             if (success) {
                 finish();
